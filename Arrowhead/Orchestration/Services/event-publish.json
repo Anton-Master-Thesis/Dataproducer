@@ -1,0 +1,19 @@
+{
+    "requestedService": {
+        "serviceDefinitionRequirement": "event-publish",
+        "interfaceRequirements": [
+            "HTTP-SECURE-JSON",
+            "HTTP-INSECURE-JSON"
+        ],
+        "securityRequirements": [
+            "CERTIFICATE",
+            "NOT_SECURE"
+        ],
+        "metadataRequirements": {
+            "req1": "req2"
+        }
+    },
+    "orchestrationFlags": {
+        "overrideStore": true
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "system": {
+        "systemName": "cardemoprovider",
+        "address": "127.0.0.1",
+        "port": 8911,
+        "authenticationInfo": ""
+    },
+    "cert": {
+        "cloud_cert": "Arrowhead/certificates/cardemoprovider.p12",
+        "cert_pass": "123456"
+    }
+}
