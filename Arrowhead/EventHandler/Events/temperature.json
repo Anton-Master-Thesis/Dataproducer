@@ -1,0 +1,9 @@
+{
+    "eventType": "temperature",
+    "metaData": {
+        "floor": "1",
+        "section": "300",
+        "device": "3",
+        "sensor": "temperature1"
+    }
+}

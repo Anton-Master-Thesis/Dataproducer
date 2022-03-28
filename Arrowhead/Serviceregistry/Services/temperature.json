@@ -1,0 +1,8 @@
+{
+    "serviceDefinition": "temperature",
+    "serviceUri": "eventhandler",
+    "secure": "CERTIFICATE",
+    "interfaces": [
+      "HTTP-SECURE-JSON"
+    ]
+}

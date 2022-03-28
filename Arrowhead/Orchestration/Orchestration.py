@@ -22,13 +22,13 @@ class Orchestrator:
         systemConfig = SystemConfig.loadConfig()
         certConfig = systemConfig["cert"]
 
-        ServiceManager.loadServices()
+        services = ServiceManager.loadServices()
         
         serviceDescriptions = {}
 
         # build the adress to request
         adress = cloudConfig["ip"] + ":" + str(cloudConfig["port"]) + "/orchestrator/orchestration"
-        for service, orchRequest in ServiceManager.services.items():
+        for service, orchRequest in services.items():
             # build the orchestration request payload
             payload = {}
             payload["requesterSystem"] = systemConfig["system"]
