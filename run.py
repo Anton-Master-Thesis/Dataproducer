@@ -12,7 +12,12 @@ if __name__ == "__main__":
     print("Register Done")
     eh = EventHandler()
     eh.testConnection()
-    data = {}
-    data["data"] = 20
-    eh.publish("temperature", data)
-    eh.publish("pressure", data)
+    q = False
+    while not q:
+        inp = input("Continue")
+        if inp == "q":
+            break
+        data = {}
+        data["data"] = 20
+        eh.publish("temperature", data)
+    sr.unregisterProviders()

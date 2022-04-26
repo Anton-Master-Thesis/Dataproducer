@@ -1,13 +1,11 @@
-from atexit import unregister
 from requests_pkcs12 import post, get, delete
 from Arrowhead import SystemConfig
+from Arrowhead.Security import SecurityManager
 from Arrowhead.Serviceregistry import ServiceregistryConfig
 from Arrowhead.Serviceregistry.Services import ServiceManager
 import urllib3
 import warnings
 import requests
-import json
-import os
 
 class Serviceregistry:
 
@@ -48,7 +46,20 @@ class Serviceregistry:
         for service, serviceRequest in services.items():
             payload = serviceRequest
 
-            payload["providerSystem"] = systemConfig["system"]
+            SecurityManager.generateKeys()
+            system = systemConfig["system"]
+            try:
+                metadata = system["metadata"]
+            except Exception:
+                metadata = {}
+
+            public_key = SecurityManager.getPublicKey()
+            metadata["pub_key_n"] = public_key["n"]
+            metadata["pub_key_e"] = public_key["e"]
+
+            system["metadata"] = metadata
+
+            payload["providerSystem"] = system
 
             if cloudConfig["secure"]:
                 # Need to disable warning because AH main cert is not trusted
@@ -94,27 +105,30 @@ class Serviceregistry:
             response = post("http://" + adress, json=payload)
 
 
-    def unregisterProviders():
+    def unregisterProviders(self):
         config = ServiceregistryConfig.loadConfig()
         cloudConfig = config["serviceregistryConfig"]
         systemConfig = SystemConfig.loadConfig()
         
         certConfig = systemConfig["cert"]
 
-        baseadress = cloudConfig["ip"] + ":" + str(cloudConfig["port"]) + "/serviceregistry/deregister"
+        baseadress = cloudConfig["ip"] + ":" + str(cloudConfig["port"]) + "/serviceregistry/unregister"
 
         services = ServiceManager.loadServices()
         for service, serviceRequest in services.items():
-            address = baseadress + "?serviceDefinition=" + serviceRequest["serviceDefinition"]
+            address = baseadress + "?service_definition=" + serviceRequest["serviceDefinition"]
             address += "&address=" + systemConfig["system"]["address"]
-            address += "&port=" + systemConfig["system"]["port"]
+            address += "&service_uri=" + serviceRequest["serviceUri"]
+            address += "&port=" + str(systemConfig["system"]["port"])
             address += "&system_name=" + systemConfig["system"]["systemName"]
             if cloudConfig["secure"]:
                 # Need to disable warning because AH main cert is not trusted
                 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                 # Need to not verify cert because AH main cert is not trusted (verify=False)
+                print(address)
                 response = delete("https://" + address, pkcs12_filename=certConfig["cloud_cert"], pkcs12_password=certConfig["cert_pass"], verify=False)
                 # Reset warnings in case we need to verify other requests
+                print(response)
                 warnings.resetwarnings()
             else:
                 response = delete("http://" + address)
@@ -126,14 +140,15 @@ class Serviceregistry:
         
         certConfig = systemConfig["cert"]
 
-        baseadress = cloudConfig["ip"] + ":" + str(cloudConfig["port"]) + "/serviceregistry/deregister"
+        baseadress = cloudConfig["ip"] + ":" + str(cloudConfig["port"]) + "/serviceregistry/unregister"
 
         services = ServiceManager.loadServices()
 
         serviceRequest = services[service]
 
-        address = baseadress + "?serviceDefinition=" + serviceRequest["serviceDefinition"]
+        address = baseadress + "?service_definition=" + serviceRequest["serviceDefinition"]
         address += "&address=" + systemConfig["system"]["address"]
+        address += "&service_uri=" + serviceRequest["serviceUri"]
         address += "&port=" + str(systemConfig["system"]["port"])
         address += "&system_name=" + systemConfig["system"]["systemName"]
 
@@ -143,6 +158,7 @@ class Serviceregistry:
             # Need to not verify cert because AH main cert is not trusted (verify=False)
             response = delete("https://" + address, pkcs12_filename=certConfig["cloud_cert"], pkcs12_password=certConfig["cert_pass"], verify=False)
             # Reset warnings in case we need to verify other requests
+            print(response.text)
             warnings.resetwarnings()
         else:
             response = delete("http://" + address)
